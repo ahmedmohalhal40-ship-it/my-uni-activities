@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<script>
+        const pass = prompt("برجاء إدخال كلمة سر الإدارة:");
+        if (pass !== "Admin@2026") { alert("غير مسموح!"); window.location.href = "login.html"; }
+        </script>
+    <meta charset="UTF-8">
+    <title>إضافة نشاط جديد</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Cairo', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow">
+        <h2 class="text-2xl font-bold mb-6 text-blue-600 border-b pb-4">إضافة نشاط جديد للطلاب</h2>
+        
+        <form id="activity-form" class="space-y-4">
+            <div>
+                <label class="block mb-1">اسم النشاط</label>
+                <input type="text" id="title" class="w-full p-2 border rounded" placeholder="مثلاً: رحلة الفيوم" required>
+            </div>
+            <div>
+                <label class="block mb-1">وصف النشاط</label>
+                <textarea id="description" class="w-full p-2 border rounded" placeholder="شرح بسيط للنشاط..."></textarea>
+            </div>
+            <div>
+                <label class="block mb-1">المواعيد المتاحة (افصل بينهم بفاصلة)</label>
+                <input type="text" id="dates" class="w-full p-2 border rounded" placeholder="الخميس الساعة 1, السبت الساعة 3" required>
+            </div>
+            <div>
+                <label class="block mb-1">وقت انتهاء النشاط (عشان تقييم الساعتين)</label>
+                <input type="datetime-local" id="end_time" class="w-full p-2 border rounded" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">
+                نشر النشاط الآن
+            </button>
+        </form>
+        <p id="msg" class="mt-4 text-center hidden"></p>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://laddhhupcublqpbcklyn.supabase.co';
+        const supabaseKey = 'sb_publishable_wMLIZBnNAXFU4lvHt8B8tA_xbgQZhEH';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.getElementById('activity-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const msg = document.getElementById('msg');
+            
+            btn.disabled = true;
+            btn.innerText = "جاري النشر...";
+
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const dates = document.getElementById('dates').value.split(',').map(d => d.trim());
+            const endTime = document.getElementById('end_time').value;
+
+            const { error } = await _supabase.from('activities').insert([{
+                title, description, dates, end_time: endTime
+            }]);
+
+            if (error) {
+                msg.innerText = "❌ خطأ: " + error.message;
+                msg.className = "mt-4 text-center text-red-600 block";
+            } else {
+                msg.innerText = "✅ تم نشر النشاط بنجاح!";
+                msg.className = "mt-4 text-center text-green-600 block";
+                e.target.reset();
+            }
+            btn.disabled = false;
+            btn.innerText = "نشر النشاط الآن";
+        });
+    </script>
+</body>
+</html>
