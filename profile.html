@@ -3,91 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ملفي الشخصي</title>
+    <title>الملف الشخصي | بيانات الطالب</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Cairo', sans-serif; }</style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
 
-    <div id="profile-card" class="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-md hidden">
-        <div class="text-center mb-6">
-            <div class="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl font-bold">
-                <span id="initials">--</span>
-            </div>
-            <h2 id="display-name" class="text-2xl font-bold text-gray-800">جاري التحميل...</h2>
-            <p id="display-username" class="text-blue-500 font-medium"></p>
-        </div>
-
-        <div class="space-y-4 border-t pt-6 text-right">
-            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                <span class="text-gray-500">الفرقة:</span>
-                <span id="display-year" class="font-bold text-gray-800">--</span>
-            </div>
-            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                <span class="text-gray-500">الشعبة:</span>
-                <span id="display-section" class="font-bold text-gray-800">--</span>
-            </div>
-            <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                <span class="text-gray-500">نوع الحساب:</span>
-                <span id="display-role" class="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-xs font-bold">طالب</span>
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="bg-blue-600 h-32 flex items-center justify-center">
+            <div class="bg-white p-2 rounded-full shadow-lg translate-y-10">
+                <div class="bg-blue-100 text-blue-600 w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold" id="avatar-letter">
+                    ؟
+                </div>
             </div>
         </div>
 
-        <button onclick="logout()" class="w-full mt-8 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl transition">
-            تسجيل الخروج
-        </button>
-<button onclick="window.location.href='admin.html'" class="w-full mt-2 bg-gray-800 text-white font-bold py-3 rounded-xl transition">لوحة تحكم الأدمن</button>
+        <div class="pt-14 pb-8 px-8 text-center">
+            <h2 class="text-2xl font-bold text-gray-800" id="display-name">جاري التحميل...</h2>
+            <p class="text-blue-500 font-medium" id="display-username">@username</p>
+
+            <div class="mt-8 space-y-4 text-right">
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p class="text-xs text-gray-400 mb-1">الفرقة الدراسية</p>
+                    <p class="font-bold text-gray-700" id="display-year">-</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p class="text-xs text-gray-400 mb-1">الشعبة / القسم</p>
+                    <p class="font-bold text-gray-700" id="display-section">-</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p class="text-xs text-gray-400 mb-1">رقم الهاتف (واتساب)</p>
+                    <p class="font-bold text-gray-700" id="display-phone">-</p>
+                </div>
+            </div>
+
+            <button onclick="logout()" class="mt-8 w-full py-3 text-red-500 font-bold hover:bg-red-50 rounded-xl transition">
+                تسجيل الخروج
+            </button>
+        </div>
     </div>
 
-    <div id="loading-msg" class="text-gray-500 animate-pulse">جاري التحقق من هويتك...</div>
+<script>
+    const supabaseUrl = 'https://laddhhupcublqpbcklyn.supabase.co';
+    const supabaseKey = 'sb_publishable_wMLIZBnNAXFU4lvHt8B8tA_xbgQZhEH';
+    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    <script>
-        const supabaseUrl = 'https://laddhhupcublqpbcklyn.supabase.co';
-        const supabaseKey = 'sb_publishable_wMLIZBnNAXFU4lvHt8B8tA_xbgQZhEH';
-        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    async function loadUserProfile() {
+        // 1. نتأكد إن الطالب مسجل دخول
+        const { data: { user } } = await _supabase.auth.getUser();
 
-        async function loadProfile() {
-            // 1. التأكد إن فيه يوزر عامل Login حالياً
-            const { data: { user } } = await _supabase.auth.getUser();
-
-            if (!user) {
-                alert("إنت مش مسجل دخول! هحولك لصفحة التسجيل.");
-                window.location.href = 'index.html';
-                return;
-            }
-
-            // 2. سحب البيانات من جدول users بناءً على الـ ID
-            const { data: profile, error } = await _supabase
-                .from('users')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-
-            if (error) {
-                console.error("Error fetching profile:", error);
-                return;
-            }
-
-            // 3. عرض البيانات في الصفحة
-            document.getElementById('display-name').innerText = profile.full_name;
-            document.getElementById('display-username').innerText = "@" + profile.username;
-            document.getElementById('display-year').innerText = "الفرقة " + profile.year;
-            document.getElementById('display-section').innerText = profile.section;
-            document.getElementById('initials').innerText = profile.full_name.charAt(0);
-            
-            // إظهار الكارت وإخفاء رسالة التحميل
-            document.getElementById('profile-card').classList.remove('hidden');
-            document.getElementById('loading-msg').classList.add('hidden');
+        if (!user) {
+            alert("انتهت الجلسة، برجاء تسجيل الدخول");
+            window.location.href = 'login.html';
+            return;
         }
 
-        async function logout() {
-            await _supabase.auth.signOut();
-            window.location.href = 'index.html';
+        // 2. نجيب بياناته من جدول users باستخدام الـ ID بتاعه
+        const { data, error } = await _supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+        if (error || !data) {
+            console.error("Error loading profile:", error);
+            document.getElementById('display-name').innerText = "خطأ في تحميل البيانات";
+            return;
         }
 
-        loadProfile();
-    </script>
+        // 3. نعرض البيانات في الصفحة
+        document.getElementById('display-name').innerText = data.full_name;
+        document.getElementById('display-username').innerText = "@" + data.username;
+        document.getElementById('display-year').innerText = "الفرقة: " + data.year;
+        document.getElementById('display-section').innerText = data.section;
+        document.getElementById('display-phone').innerText = data.phone || "غير مسجل";
+        document.getElementById('avatar-letter').innerText = data.full_name.charAt(0);
+    }
+
+    async function logout() {
+        await _supabase.auth.signOut();
+        window.location.href = 'login.html';
+    }
+
+    loadUserProfile();
+</script>
 </body>
 </html>
